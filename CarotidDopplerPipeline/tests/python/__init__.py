@@ -1,0 +1,1 @@
+"""Python public-contract tests."""

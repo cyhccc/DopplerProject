@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carotid-doppler.local/schemas/cuda_run_config.schema.json",
+  "title": "Carotid Doppler CUDA Run Configuration",
+  "description": "CUDA 数值运行配置。显示、dB、共享功率参考和图像字段不属于该配置。Schema 与解析器保持通用，正式 --config ... --run 另由 validate_real_carotid_protocol 强制固定的 381 帧五角度协议。",
+  "$comment": "validation-only 与底层诊断可使用满足通用字段关系的小型配置；正式颈动脉运行固定 frame_start=0、frame_count=381、5x128x2816、descending_x、角度[-6,-3,0,3,6]、delay=177 和 SVD one_based_inclusive 索引语义。SVD 起止秩由配置显式选择并满足 1 <= keep_start <= keep_end <= frame_count；TGC 与接收孔径加窗不在正式协议锁定项中，以支持消融。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "input",
+    "acquisition",
+    "image_grid",
+    "receive",
+    "tgc",
+    "bandpass",
+    "svd",
+    "output"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dtype",
+        "layout",
+        "sequences",
+        "channels",
+        "samples",
+        "frame_start",
+        "frame_count",
+        "channel_order"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dtype": {
+          "type": "string",
+          "const": "int16_le"
+        },
+        "layout": {
+          "type": "array",
+          "const": [
+            "frame",
+            "sequence",
+            "sample",
+            "source_channel"
+          ]
+        },
+        "sequences": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "channels": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "frame_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "frame_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "channel_order": {
+          "type": "string",
+          "enum": [
+            "ascending_x",
+            "descending_x"
+          ]
+        }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_rate_hz",
+        "center_frequency_hz",
+        "sound_speed_m_per_s",
+        "pitch_m",
+        "transmit_angles_deg",
+        "tx_delay_offset_samples",
+        "transmit_cycle_count",
+        "tx_reference_mode"
+      ],
+      "properties": {
+        "sample_rate_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "center_frequency_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "sound_speed_m_per_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "pitch_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "transmit_angles_deg": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number"
+          },
+          "$comment": "数组长度必须等于 input.sequences；该跨字段约束由手写解析器校验。"
+        },
+        "tx_delay_offset_samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "transmit_cycle_count": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "$comment": "显式对应真实 DLL plugin.json parameters.cycle；TGC offset 禁止使用隐藏常数。"
+        },
+        "tx_reference_mode": {
+          "type": "string",
+          "enum": [
+            "aperture_edge",
+            "aligned_reference"
+          ]
+        }
+      }
+    },
+    "image_grid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nx",
+        "nz",
+        "x_min_m",
+        "x_max_m",
+        "z_min_m",
+        "z_max_m"
+      ],
+      "properties": {
+        "nx": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "nz": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "x_min_m": {
+          "type": "number"
+        },
+        "x_max_m": {
+          "type": "number"
+        },
+        "z_min_m": {
+          "type": "number"
+        },
+        "z_max_m": {
+          "type": "number"
+        }
+      },
+      "$comment": "x_min_m < x_max_m 且 z_min_m < z_max_m；跨字段大小关系由手写解析器校验。"
+    },
+    "receive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "f_number",
+        "minimum_aperture_m",
+        "apodization"
+      ],
+      "properties": {
+        "f_number": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimum_aperture_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "apodization": {
+          "type": "string",
+          "enum": [
+            "rectangular",
+            "tukey25"
+          ]
+        }
+      }
+    },
+    "tgc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "alpha_coeff_db_cm_mhz_power",
+        "frequency_power"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "alpha_coeff_db_cm_mhz_power": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "frequency_power": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "$comment": "顺序固定为 int16 映射 -> TGC float32 -> centered FIR -> Hilbert。disabled 时仅做 int16 到 float32 映射。"
+    },
+    "bandpass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "coefficients_path",
+        "dtype",
+        "taps"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "coefficients_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dtype": {
+          "type": "string",
+          "const": "float32_le"
+        },
+        "taps": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "$comment": "enabled=true 时系数文件存在性、字节数和有限性属于运行时文件校验。"
+    },
+    "svd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "keep_start",
+        "keep_end",
+        "indexing"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "const": "global_temporal"
+        },
+        "keep_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "keep_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "indexing": {
+          "type": "string",
+          "const": "one_based_inclusive"
+        }
+      },
+      "$comment": "1 <= keep_start <= keep_end <= input.frame_count；跨字段范围由手写解析器校验。"
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_root",
+        "dump_beamformed_iq",
+        "dump_filtered_iq"
+      ],
+      "properties": {
+        "run_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dump_beamformed_iq": {
+          "type": "boolean"
+        },
+        "dump_filtered_iq": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

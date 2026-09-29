@@ -1,0 +1,30 @@
+# Code-only repository: deny files unless explicitly allowed below.
+*
+!*/
+!*.cu
+!*.cuh
+!*.cpp
+!*.h
+!*.hpp
+!*.py
+!*.m
+!*.ps1
+!*.cmd
+!*.cmake
+!CMakeLists.txt
+!CMakePresets.json
+!pyproject.toml
+!*.schema.json
+!.gitignore
+# Local artifacts and environments remain excluded even if they contain code.
+**/build/
+**/manual_build*/
+**/outputs/
+**/optimizer_runs/
+**/__pycache__/
+**/.venv/
+/packages_*/
+/.vscode/
+/.codex/
+/.agents/
+**/runs/

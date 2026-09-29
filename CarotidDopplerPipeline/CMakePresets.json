@@ -1,0 +1,60 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-release",
+      "displayName": "Windows CUDA Release",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CAROTID_CUDA_ARCHITECTURES": "89"
+      }
+    },
+    {
+      "name": "windows-release-ninja",
+      "displayName": "Windows CUDA Release (Ninja fallback)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-release-ninja",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CAROTID_CUDA_ARCHITECTURES": "89"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-release-ninja",
+      "configurePreset": "windows-release-ninja"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release-ninja",
+      "configurePreset": "windows-release-ninja",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
